@@ -1,0 +1,355 @@
+---
+title: "bio720 assignment 11.18"
+author: "Jerry"
+date: "2018Äê11ÔÂ18ÈÕ"
+output: md_document
+---
+
+# Data Visualization with ggplot2: Introduction
+
+## Exploratory vs Explanatory 
+- Exploratory visualizations: Graphical data analysis. Easily generated, data-heavy, intended for a small specialist audience.
+- Explanatory visualizations: Communication process. Labor-intensive, data-specific, intended for a broader audience.
+
+##  Exploring ggplot2 part1
+```{r}
+library(ggplot2)
+ggplot(mtcars, aes(x = cyl, y = mpg)) +
+  geom_point()
+```
+
+-Load the ggplot2 package first.
+
+-Deifine x axis and y axis: x = _, y = _)
+
+-geom_point(): Scatter plot
+
+-Notice that ggplot2 treats cyl as a continuous variable, which is wrong.
+```{r}
+ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_point()
+```
+
+- Wrapping factor() around cyl: ggplot2 treats cyl as a factor. Problem is fixed.
+
+## Exploring ggplot2 part2
+### Other aesthetics
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+
+ggplot(mtcars, aes(x = wt, y = mpg, color = disp)) +
+  geom_point()
+
+ggplot(mtcars, aes(x = wt, y = mpg, size = disp)) +
+  geom_point()
+```
+
+-color =/size = : Legend for the color and size scales was generated(dependent on disp).
+
+### Understanding Variables
+ggplot(mtcars, aes(x = wt, y = mpg, shape = disp)) +
+  geom_point()
+
+-This(shape = disp) gives you an error: only makes sense with categorical data, and disp is continuous.
+
+## geom_point() and geom_smooth()
+```{r}
+ggplot(diamonds, aes(x = carat, y = price))  +
+  geom_point()
+
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point() +
+  geom_smooth()
+```
+
+-geom_point(): draw points on the plot.
+
+-geom_smooth(): draw a smoothed line over the points.
+
+## Exploring ggplot2 part4
+```{r}
+ggplot(diamonds, aes(x = carat, y = price, color = clarity)) +
+  geom_smooth()
+
+ggplot(diamonds, aes(x = carat, y = price, color = clarity)) +
+  geom_point(alpha = 0.4)
+```
+
+-color = clarity: clarity mapped to color.
+
+-geom_point(alpha = 0.4): This will make the points 60% transparent/40% visible.
+
+## Understanding the grammar part1
+```{r}
+dia_plot <- ggplot(diamonds, aes(x = carat, y = price))
+
+dia_plot + geom_point()
+
+dia_plot + geom_point(aes(color = clarity))
+```
+
+- You can store the plot as a ggplot object that you can use later(add other layers).
+
+- You can also modify the functions.
+
+## Understanding the grammar part2
+```{r}
+dia_plot + geom_smooth(aes(col = clarity), se = FALSE)
+```
+
+-se = FALSE: No error shading.
+
+# Data Visualization with ggplot2: Data
+
+## Base package and ggplot2
+-Base package disadvantages: 
+ 
+ 1. Plot doesn't get redrawn.
+ 
+ 2. Plot is drawn as a image.
+ 
+ 3. Need to manually add legend
+ 
+ 4. No unified framework for plotting.
+
+-Using ggplot2
+ 
+ The major advantage of ggplot2 is the ggplot object. You can sign the base layers to an object, and then recycle the object with different arguements(such as different plot types).
+
+## Plotting the ggplot2 way
+- The ggplot2 way:
+
+Rearrange the data to define variables in your dataset according to what we are really interested in. Should make the function calls as straightforward as possible.
+
+## Tidy Data 
+###facet_grid(. ~ ___)
+It will generate several plots based on the thing you fill in the blank.
+
+### How to rearrange your data 
+-'gather()'
+ 
+ It moves information from the columns to the rows. It takes multiple columns and gathers them into a single column by adding rows. 
+ 
+ Say you have a dataset like this:
+ 
+```{r}
+head(iris)
+```
+
+Then if you do:
+
+```{r}
+library(tidyr)
+iris.tidy <- iris %>% 
+  gather(key, Value, -Species)
+```
+
+And then have a look:
+
+```{r}
+ head(iris.tidy)
+```
+
+So we can see that all the columns are combined except 'species' column(-species). All the values are now in the 'value' column and the column names in the previous data frame are now combined in the 'key' column.
+
+-'separate()¡®
+ 
+ It splits one column into two or more columns according to a pattern you define.
+ So if you add another line to the previous gather command:
+```{r}
+ iris.tidy <- iris %>%
+  gather(key, Value, -Species) %>%
+  separate(key, c("Part", "Measure"), "\\.")
+```
+
+And then you will see:
+ 
+```{r}
+ head(iris.tidy)
+```
+
+So the 'key' column in the previous data frame is now separated into "Part" and "Measure". And "\\." lets the 'key' column separate by ".".
+
+-'%>%'
+ 
+ It passes the result of the left-hand side as the first argument of the function on the right-hand side.
+
+-'spread()' 
+
+ It takes two columns (key & value), and spreads into multiple columns: it makes ¡°long¡± data wider.
+ 
+# Data Visualization with ggplot2: Visible Aesthetics
+
+## Typical Aesthetics
+
+X: x axis position
+
+y: Y axis position
+
+colour: Colour of dots, outlines of other shapes
+
+fill: Fill colour
+
+size: Diameter of points, thickness of lines
+
+alpha: Transparency
+
+linetype: Line dash pa!ern
+
+labels: Text on a plot or axes
+
+shape: Shape
+
+### shape
+
+Shapes in R can have a value from 1-25. Shapes 1-20 can only accept a color aesthetic, but shapes 21-25 have both a color and a fill aesthetic.
+
+The default geom_point() uses shape = 19 (a solid circle with an outline the same colour as the inside). 
+Good alternatives are shape = 1 (hollow) and shape = 16 (solid, no outline). These all use the col aesthetic.
+
+A really nice alternative is shape = 21 which allows you to use both fill for the inside and col for the outline. 
+
+### hexadecimal colours
+
+Hexadecimal, literally "related to 16", is a base-16 alphanumeric counting system. Individual values come from the ranges 0-9 and A-F. This means there are 256 possible two-digit values (i.e. 00 - FF). Hexadecimal colours use this system to specify a six-digit code for Red, Green and Blue values ("#RRGGBB") of a colour (i.e. Pure blue: "#0000FF", black: "#000000", white: "#FFFFFF"). R can accept hex codes as valid colours.
+However, you could use "yellow" as yellow color. "red" as red.
+
+## Modifying Aesthetics
+### position = "jitter"
+
+Add some random noise on both x and y to see regions of high density.
+It can be used as a argument or a function. 
+ 
+### Scale Function
+ 
+ scale_?_!("_", limits = _, breaks = _, expand = _, labels = _)
+
+ ?: Defines which scale we want to modify(x,y,color...).
+ 
+ !: Match the type of data we are using(continuous or discrette).
+
+ Limits: Scale's limits.
+
+ Breaks: controls the breaks in the guide.
+
+ Expand: is a numeric vector of two, giving a multiplicative and additive constant.
+ 
+ labels: label the categories.
+
+### labs(x =_, y =_)
+
+Quick change the axis labels.
+ 
+# Data Visualization with ggplot2: Geometries
+## Scatter Plot
+
+- Each geom has specific aesthetic mappings
+
+- geom_point()
+
+- Essential: x, y
+
+- Optional: alpha, colour, fill, shape, size
+
+-example:
+```{r}
+ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+ geom_point()
+```
+
+-Add layers by '+geom_point()'. Can modify aes inside the brackets.
+
+-crosshair:
+ geom_vline(data = _, linetype = _,aes(_intercept = _, col = _))
+
+
+## Bar Plots
+### Histogram
+-plot of statistical function
+
+-No space between
+
+-x axis labels between the bars
+
+-example:
+```{r}
+ggplot(iris, aes(x = Sepal.Width)) +
+geom_histogram()
+```
+
+-stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this:
+
+There will always be a message like this. We can change it anytime.
+
+Different types of 'position':
+
+-stack
+```{r}
+ggplot(iris, aes(x = Sepal.Width )) +
+geom_histogram(binwidth = 0.1,position = "stack")
+```
+
+-dodge
+```{r}
+ggplot(iris, aes(x = Sepal.Width, fill = Species)) +
+geom_histogram(binwidth = 0.1, position = "dodge" )
+```
+
+-fill
+```{r}
+ggplot(iris, aes(x = Sepal.Width, fill = Species)) +
+geom_histogram(binwidth = 0.1, position = "fill" )
+```
+
+### Bar
+-geom_bar()
+
+-All positions from before available
+
+-Two types:
+
+Absolute counts
+
+Distributions
+
+-Absolute counts
+```{r}
+ggplot(sleep, aes(extra)) +
+  geom_bar()
+```
+
+-Distributions
+```{r}
+ggplot(mtcars, aes(mpg, fill = cyl)) +
+  geom_histogram(binwidth = 1, position = "identity")
+```
+
+-geom_errorbar
+geom_errorbar(aes(ymin = _, ymax = _),
+width = _)
+
+## Line plots
+### geom_line
+-example:
+```{r}
+ggplot(economics, aes(x = date, y = unemploy/pop)) +
+  geom_line()
+```
+
+For geom_line():
+
+There are several categorical variables:linetype, color, and size are the common choices.
+
+### fill(geom_area)
+
+Instead of overlapping time series, they are added together at each point.
+
+-position = "fill"
+
+For each time point, we have a proportion of the total y value by each category.
+
+
+### geom_ribbon
+ggplot(fish, aes(x = _, y = _, fill = _)) +
+geom_ribbon(aes(ymax = _, ymin = 0), alpha = _)
